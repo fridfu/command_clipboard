@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Command Clipboard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 32px 24px;
+    }
+
+    h1 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #64748b;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    #clips {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 960px;
+    }
+
+    .clip {
+      display: flex;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      background: #141820;
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+
+    .clip:hover {
+      border-color: #334155;
+    }
+
+    .clip-left {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .clip-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 8px 12px 4px;
+      background: transparent;
+      border: none;
+      outline: none;
+      width: 100%;
+      font-family: inherit;
+    }
+
+    .clip-title:focus {
+      color: #94a3b8;
+    }
+
+    .clip-title::placeholder { color: #334155; }
+
+    .clip-text {
+      font-size: 13px;
+      color: #cbd5e1;
+      padding: 4px 12px 10px;
+      background: transparent;
+      border: none;
+      outline: none;
+      resize: none;
+      width: 100%;
+      font-family: inherit;
+      line-height: 1.5;
+      overflow: hidden;
+      min-height: 32px;
+    }
+
+    .clip-text::placeholder { color: #334155; }
+    .clip-text:focus { color: #f1f5f9; }
+
+    .clip-copy {
+      width: 56px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-left: 1px solid #1e293b;
+      color: #334155;
+      font-size: 18px;
+      transition: background 0.12s, color 0.12s;
+      user-select: none;
+      position: relative;
+    }
+
+    .clip-copy:hover {
+      background: #1e293b;
+      color: #94a3b8;
+    }
+
+    .clip-copy.copied {
+      background: #14532d;
+      color: #4ade80;
+    }
+
+    .clip-copy svg {
+      pointer-events: none;
+    }
+
+    .clip-delete {
+      width: 32px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #1e293b;
+      font-size: 14px;
+      transition: color 0.12s;
+      user-select: none;
+      border-left: 1px solid transparent;
+    }
+
+    .clip:hover .clip-delete {
+      color: #334155;
+    }
+
+    .clip-delete:hover {
+      color: #ef4444 !important;
+    }
+
+    #add-btn {
+      margin-top: 8px;
+      max-width: 960px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px dashed #1e293b;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #334155;
+      font-size: 20px;
+      font-family: inherit;
+      background: transparent;
+      width: 100%;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    #add-btn:hover {
+      border-color: #334155;
+      color: #64748b;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #14532d;
+      color: #4ade80;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      padding: 8px 14px;
+      border-radius: 4px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <h1>Command Clipboard</h1>
+  <div id="clips"></div>
+  <button id="add-btn">+</button>
+  <div class="toast" id="toast">Copied</div>
+
+  <script>
+    const STORE_KEY = 'command_clipboard_v1';
+
+    function load() {
+      try {
+        return JSON.parse(localStorage.getItem(STORE_KEY)) || [];
+      } catch { return []; }
+    }
+
+    function save(clips) {
+      localStorage.setItem(STORE_KEY, JSON.stringify(clips));
+    }
+
+    let clips = load();
+    if (clips.length === 0) clips = [{ id: uid(), title: '', text: '' }];
+
+    function uid() {
+      return Math.random().toString(36).slice(2, 10);
+    }
+
+    function autoResize(textarea) {
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+    }
+
+    let toastTimer;
+    function showToast(label) {
+      const t = document.getElementById('toast');
+      t.textContent = label ? `Copied: ${label}` : 'Copied';
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 1500);
+    }
+
+    function render() {
+      const container = document.getElementById('clips');
+      container.innerHTML = '';
+
+      clips.forEach((clip) => {
+        const el = document.createElement('div');
+        el.className = 'clip';
+        el.dataset.id = clip.id;
+
+        const left = document.createElement('div');
+        left.className = 'clip-left';
+
+        const title = document.createElement('input');
+        title.className = 'clip-title';
+        title.type = 'text';
+        title.placeholder = 'Title';
+        title.value = clip.title;
+        title.addEventListener('input', () => {
+          clip.title = title.value;
+          save(clips);
+        });
+
+        const text = document.createElement('textarea');
+        text.className = 'clip-text';
+        text.placeholder = 'Paste command, key, or anything…';
+        text.value = clip.text;
+        text.rows = 1;
+        text.addEventListener('input', () => {
+          clip.text = text.value;
+          save(clips);
+          autoResize(text);
+        });
+
+        left.appendChild(title);
+        left.appendChild(text);
+
+        const copyBtn = document.createElement('div');
+        copyBtn.className = 'clip-copy';
+        copyBtn.title = 'Copy to clipboard';
+        copyBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+        copyBtn.addEventListener('click', () => {
+          if (!clip.text) return;
+          navigator.clipboard.writeText(clip.text).then(() => {
+            copyBtn.classList.add('copied');
+            showToast(clip.title);
+            setTimeout(() => copyBtn.classList.remove('copied'), 1000);
+          });
+        });
+
+        const delBtn = document.createElement('div');
+        delBtn.className = 'clip-delete';
+        delBtn.title = 'Remove';
+        delBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+        delBtn.addEventListener('click', () => {
+          clips = clips.filter(c => c.id !== clip.id);
+          if (clips.length === 0) clips = [{ id: uid(), title: '', text: '' }];
+          save(clips);
+          render();
+        });
+
+        el.appendChild(left);
+        el.appendChild(copyBtn);
+        el.appendChild(delBtn);
+        container.appendChild(el);
+
+        autoResize(text);
+      });
+    }
+
+    document.getElementById('add-btn').addEventListener('click', () => {
+      clips.push({ id: uid(), title: '', text: '' });
+      save(clips);
+      render();
+      // focus the new title
+      const inputs = document.querySelectorAll('.clip-title');
+      inputs[inputs.length - 1].focus();
+    });
+
+    render();
+  </script>
+</body>
+</html>
