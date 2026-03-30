@@ -60,20 +60,20 @@
     }
 
     .clip-title {
-      font-size: 11px;
-      font-weight: 600;
-      color: #64748b;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      padding: 8px 12px 4px;
+      font-size: 13px;
+      font-weight: 700;
+      color: #e2e8f0;
+      letter-spacing: 0.02em;
+      padding: 10px 12px 8px;
       background: transparent;
       border: none;
+      border-bottom: 1px solid #1e293b;
       outline: none;
       width: 100%;
       font-family: inherit;
     }
-    .clip-title:focus { color: #94a3b8; }
-    .clip-title::placeholder { color: #334155; }
+    .clip-title:focus { color: #f8fafc; border-bottom-color: #334155; }
+    .clip-title::placeholder { color: #334155; font-weight: 400; }
 
     /* Overlay editor: highlight div behind transparent textarea */
     .clip-editor {
@@ -134,7 +134,7 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      border-left: 1px solid #1e293b;
+      border-right: 1px solid #1e293b;
       color: #334155;
       transition: background 0.12s, color 0.12s;
       user-select: none;
@@ -450,6 +450,16 @@
         }
 
         textarea.addEventListener('input', update);
+        textarea.addEventListener('keydown', (e) => {
+          if (e.key === 'Tab') {
+            e.preventDefault();
+            const s = textarea.selectionStart;
+            const e2 = textarea.selectionEnd;
+            textarea.value = textarea.value.slice(0, s) + '\t' + textarea.value.slice(e2);
+            textarea.selectionStart = textarea.selectionEnd = s + 1;
+            update();
+          }
+        });
 
         editorWrap.appendChild(highlight);
         editorWrap.appendChild(textarea);
@@ -483,8 +493,8 @@
           render();
         });
 
-        el.appendChild(left);
         el.appendChild(copyBtn);
+        el.appendChild(left);
         el.appendChild(delBtn);
         container.appendChild(el);
 
