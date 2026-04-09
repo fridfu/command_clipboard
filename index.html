@@ -725,9 +725,8 @@
       // Register for highlight refresh
       editorPairs.push({ clip, textarea, highlight });
 
-      // Init
+      // Init highlight (resize happens after DOM insertion in render())
       highlight.innerHTML = highlightBash(clip.text || '', vars) || '';
-      autoResize(textarea, highlight);
 
       return el;
     }
@@ -803,6 +802,8 @@
           container.appendChild(renderClipBox(clip, vars));
         }
       });
+      // Resize after all elements are in the DOM so scrollHeight is accurate
+      editorPairs.forEach(({ textarea, highlight }) => autoResize(textarea, highlight));
     }
 
     // ── Modal ─────────────────────────────────────────────────────────────────
