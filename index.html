@@ -18,14 +18,37 @@
       align-items: center;
     }
 
+    #header {
+      width: 100%;
+      max-width: 960px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
     h1 {
       font-size: 14px;
       font-weight: 600;
       color: #64748b;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      margin-bottom: 20px;
     }
+
+    #link-btn {
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      background: transparent;
+      border: 1px solid #1e293b;
+      border-radius: 4px;
+      color: #475569;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+      white-space: nowrap;
+    }
+    #link-btn:hover { border-color: #334155; color: #94a3b8; }
+    #link-btn.linked { border-color: #166534; color: #4ade80; }
 
     #clips {
       display: flex;
@@ -33,12 +56,6 @@
       gap: 8px;
       width: 100%;
       max-width: 960px;
-    }
-
-    h1 {
-      width: 100%;
-      max-width: 960px;
-      text-align: center;
     }
 
     .clip {
@@ -195,7 +212,10 @@
   </style>
 </head>
 <body>
-  <h1>Command Clipboard</h1>
+  <div id="header">
+    <h1>Command Clipboard</h1>
+    <button id="link-btn">Link file</button>
+  </div>
   <div id="clips"></div>
   <button id="add-btn">+</button>
   <div class="toast" id="toast">Copied</div>
@@ -203,11 +223,62 @@
   <script>
     const STORE_KEY = 'command_clipboard_v1';
 
+    let fileHandle = null;
+
     function load() {
       try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }
       catch { return []; }
     }
-    function save(clips) { localStorage.setItem(STORE_KEY, JSON.stringify(clips)); }
+
+    function save(clips) {
+      localStorage.setItem(STORE_KEY, JSON.stringify(clips));
+      if (fileHandle) writeToFile(clips);
+    }
+
+    async function writeToFile(clips) {
+      try {
+        const writable = await fileHandle.createWritable();
+        await writable.write(JSON.stringify(clips, null, 2));
+        await writable.close();
+      } catch (e) {
+        // file write failed (e.g. permission revoked) — silently fall back to localStorage
+        console.warn('File write failed:', e);
+      }
+    }
+
+    function setLinked(name) {
+      const btn = document.getElementById('link-btn');
+      btn.textContent = '● ' + name;
+      btn.classList.add('linked');
+    }
+
+    document.getElementById('link-btn').addEventListener('click', async () => {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName: 'command_clipboard.json',
+          types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
+        });
+        // Try to read existing data from file
+        const file = await handle.getFile();
+        const text = await file.text();
+        if (text.trim()) {
+          try {
+            const parsed = JSON.parse(text);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              clips = parsed;
+              save(clips);
+              render();
+            }
+          } catch { /* ignore invalid JSON, keep current clips */ }
+        }
+        fileHandle = handle;
+        setLinked(handle.name);
+        // Write current state immediately
+        writeToFile(clips);
+      } catch (e) {
+        if (e.name !== 'AbortError') console.warn('File picker error:', e);
+      }
+    });
 
     let clips = load();
     if (clips.length === 0) clips = [{ id: uid(), title: '', text: '' }];
