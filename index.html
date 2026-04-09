@@ -58,6 +58,7 @@
       max-width: 960px;
     }
 
+    /* ── Clip box ─────────────────────────────────────────────── */
     .clip {
       display: flex;
       border: 1px solid #1e293b;
@@ -66,7 +67,6 @@
       overflow: hidden;
       transition: border-color 0.15s;
     }
-
     .clip:hover { border-color: #334155; }
 
     .clip-left {
@@ -92,10 +92,7 @@
     .clip-title:focus { color: #fff; background: #1e2740; border-bottom-color: #3b4f70; }
     .clip-title::placeholder { color: #2d3f5a; font-weight: 400; }
 
-    /* Overlay editor: highlight div behind transparent textarea */
-    .clip-editor {
-      position: relative;
-    }
+    .clip-editor { position: relative; }
 
     .clip-highlight {
       position: absolute;
@@ -108,7 +105,6 @@
       word-break: break-all;
       pointer-events: none;
       overflow: hidden;
-      aria-hidden: true;
     }
 
     .clip-text {
@@ -130,19 +126,19 @@
       white-space: pre-wrap;
       word-break: break-all;
     }
-
     .clip-text::placeholder { color: #334155; }
 
     /* Bash highlight colors */
-    .h-cmd     { color: #38bdf8; } /* command name   – sky     */
-    .h-key     { color: #e879f9; } /* keyword        – fuchsia */
-    .h-flag    { color: #60a5fa; } /* flag -x/--opt  – blue    */
-    .h-str     { color: #4ade80; } /* string         – green   */
-    .h-var     { color: #f59e0b; } /* $variable      – amber   */
-    .h-op      { color: #c084fc; } /* pipe/redir     – violet  */
-    .h-num     { color: #fb923c; } /* number         – orange  */
-    .h-cmt     { color: #475569; } /* comment        – slate   */
-    .h-plain   { color: #cbd5e1; } /* plain text               */
+    .h-cmd      { color: #38bdf8; }
+    .h-key      { color: #e879f9; }
+    .h-flag     { color: #60a5fa; }
+    .h-str      { color: #4ade80; }
+    .h-var      { color: #f59e0b; }
+    .h-var-undef{ color: #f59e0b; text-decoration: underline wavy #ef4444; text-underline-offset: 3px; }
+    .h-op       { color: #c084fc; }
+    .h-num      { color: #fb923c; }
+    .h-cmt      { color: #475569; }
+    .h-plain    { color: #cbd5e1; }
 
     .clip-copy {
       width: 56px;
@@ -174,6 +170,70 @@
     .clip:hover .clip-delete { color: #334155; }
     .clip-delete:hover { color: #ef4444 !important; }
 
+    /* ── Env var box ──────────────────────────────────────────── */
+    .clip.env-clip { border-color: #25200f; background: #14110a; }
+    .clip.env-clip:hover { border-color: #44320a; }
+
+    .env-badge {
+      width: 56px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-right: 1px solid #25200f;
+      color: #78350f;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      user-select: none;
+    }
+
+    .env-fields {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      min-width: 0;
+      gap: 0;
+    }
+
+    .env-name {
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      color: #fbbf24;
+      background: transparent;
+      border: none;
+      outline: none;
+      width: 200px;
+      flex-shrink: 0;
+      padding: 13px 10px;
+    }
+    .env-name::placeholder { color: #44320a; font-weight: 400; }
+    .env-name:focus { color: #fde68a; }
+
+    .env-eq {
+      color: #44320a;
+      font-size: 14px;
+      padding: 0 2px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .env-value {
+      flex: 1;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #d1d5db;
+      background: transparent;
+      border: none;
+      outline: none;
+      padding: 13px 10px;
+      min-width: 0;
+    }
+    .env-value::placeholder { color: #44320a; }
+    .env-value:focus { color: #f8fafc; }
+
+    /* ── Add button ───────────────────────────────────────────── */
     #add-btn {
       margin-top: 8px;
       width: 100%;
@@ -193,6 +253,61 @@
     }
     #add-btn:hover { border-color: #334155; color: #64748b; }
 
+    /* ── Modal ────────────────────────────────────────────────── */
+    #modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    #modal-overlay.show { display: flex; }
+
+    #modal {
+      background: #1a2030;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 28px 24px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      min-width: 320px;
+    }
+    #modal h2 {
+      font-size: 11px;
+      color: #64748b;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-weight: 600;
+      text-align: center;
+    }
+    .modal-choices { display: flex; gap: 12px; }
+
+    .modal-choice {
+      flex: 1;
+      padding: 18px 12px 16px;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      background: #0f1117;
+      color: #e2e8f0;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      text-align: center;
+      transition: border-color 0.15s, background 0.15s;
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      align-items: center;
+    }
+    .modal-choice:hover { border-color: #60a5fa; background: #1e293b; }
+    .mc-icon  { font-size: 26px; line-height: 1; }
+    .mc-label { font-size: 13px; font-weight: 700; color: #f1f5f9; }
+    .mc-desc  { color: #64748b; font-size: 10px; }
+
+    /* ── Toast ────────────────────────────────────────────────── */
     .toast {
       position: fixed;
       bottom: 24px;
@@ -218,10 +333,31 @@
   </div>
   <div id="clips"></div>
   <button id="add-btn">+</button>
+
+  <div id="modal-overlay">
+    <div id="modal">
+      <h2>Add new…</h2>
+      <div class="modal-choices">
+        <button class="modal-choice" id="mc-clip">
+          <span class="mc-icon">📋</span>
+          <span class="mc-label">Clipboard</span>
+          <span class="mc-desc">bash command or text</span>
+        </button>
+        <button class="modal-choice" id="mc-env">
+          <span class="mc-icon" style="font-style:normal;font-weight:800;color:#fbbf24;font-family:'Courier New',monospace">$</span>
+          <span class="mc-label">Env Variable</span>
+          <span class="mc-desc">NAME = value</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast">Copied</div>
 
   <script>
     const STORE_KEY = 'command_clipboard_v1';
+
+    // ── Persistence ───────────────────────────────────────────────────────────
 
     let fileHandle = null;
 
@@ -241,7 +377,6 @@
         await writable.write(JSON.stringify(clips, null, 2));
         await writable.close();
       } catch (e) {
-        // file write failed (e.g. permission revoked) — silently fall back to localStorage
         console.warn('File write failed:', e);
       }
     }
@@ -258,32 +393,55 @@
           suggestedName: 'command_clipboard.json',
           types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
         });
-        // Try to read existing data from file
         const file = await handle.getFile();
         const text = await file.text();
         if (text.trim()) {
           try {
             const parsed = JSON.parse(text);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              clips = parsed;
+              clips = parsed.map(normalize);
               save(clips);
               render();
             }
-          } catch { /* ignore invalid JSON, keep current clips */ }
+          } catch { /* ignore invalid JSON */ }
         }
         fileHandle = handle;
         setLinked(handle.name);
-        // Write current state immediately
         writeToFile(clips);
       } catch (e) {
         if (e.name !== 'AbortError') console.warn('File picker error:', e);
       }
     });
 
-    let clips = load();
-    if (clips.length === 0) clips = [{ id: uid(), title: '', text: '' }];
+    // ── Data ──────────────────────────────────────────────────────────────────
 
     function uid() { return Math.random().toString(36).slice(2, 10); }
+
+    // Ensure every item has a type (migration from old format)
+    function normalize(c) {
+      if (!c.type) return { ...c, type: 'clip' };
+      return c;
+    }
+
+    let clips = load().map(normalize);
+    if (clips.length === 0) clips = [{ id: uid(), type: 'clip', title: '', text: '' }];
+
+    function getDefinedVars() {
+      const vars = new Map();
+      clips.forEach(c => {
+        if (c.type === 'env' && c.name && c.name.trim()) {
+          vars.set(c.name.trim(), c.value || '');
+        }
+      });
+      return vars;
+    }
+
+    function substituteVars(text) {
+      const vars = getDefinedVars();
+      return text
+        .replace(/\$\{(\w+)\}/g, (m, name) => vars.has(name) ? vars.get(name) : m)
+        .replace(/\$(\w+)/g,     (m, name) => vars.has(name) ? vars.get(name) : m);
+    }
 
     // ── Bash tokenizer ────────────────────────────────────────────────────────
 
@@ -297,23 +455,19 @@
     function esc(s) {
       return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     }
-
     function span(cls, s) { return `<span class="${cls}">${esc(s)}</span>`; }
 
-    function highlightBash(text) {
+    function highlightBash(text, definedVars) {
       let html = '';
       let i = 0;
       const n = text.length;
-      // track whether we expect a command name next
       let expectCmd = true;
 
       while (i < n) {
         const ch = text[i];
 
-        // newline
         if (ch === '\n') { html += '\n'; i++; expectCmd = true; continue; }
 
-        // whitespace run
         if (ch === ' ' || ch === '\t') {
           let j = i;
           while (j < n && (text[j] === ' ' || text[j] === '\t')) j++;
@@ -322,7 +476,6 @@
           continue;
         }
 
-        // comment
         if (ch === '#') {
           let j = i;
           while (j < n && text[j] !== '\n') j++;
@@ -331,7 +484,6 @@
           continue;
         }
 
-        // single-quoted string
         if (ch === "'") {
           let j = i + 1;
           while (j < n && text[j] !== "'") j++;
@@ -341,81 +493,74 @@
           continue;
         }
 
-        // double-quoted string
         if (ch === '"') {
           let j = i + 1;
-          while (j < n && text[j] !== '"') {
-            if (text[j] === '\\') j++;
-            j++;
-          }
+          while (j < n && text[j] !== '"') { if (text[j] === '\\') j++; j++; }
           html += span('h-str', text.slice(i, j + 1));
           i = j + 1;
           expectCmd = false;
           continue;
         }
 
-        // backtick subshell
         if (ch === '`') {
           let j = i + 1;
-          while (j < n && text[j] !== '`') {
-            if (text[j] === '\\') j++;
-            j++;
-          }
-          html += span('h-op', '`') + highlightBash(text.slice(i + 1, j)) + span('h-op', '`');
+          while (j < n && text[j] !== '`') { if (text[j] === '\\') j++; j++; }
+          html += span('h-op','`') + highlightBash(text.slice(i+1, j), definedVars) + span('h-op','`');
           i = j + 1;
           expectCmd = true;
           continue;
         }
 
-        // $( ) or ${ } or $var
         if (ch === '$') {
-          if (text[i + 1] === '(') {
-            // command substitution $(...)
+          if (text[i+1] === '(') {
             let depth = 1, j = i + 2;
             while (j < n && depth > 0) {
               if (text[j] === '(') depth++;
               else if (text[j] === ')') depth--;
               j++;
             }
-            html += span('h-op','$(') + highlightBash(text.slice(i+2, j-1)) + span('h-op',')');
+            html += span('h-op','$(') + highlightBash(text.slice(i+2, j-1), definedVars) + span('h-op',')');
             i = j;
             expectCmd = false;
             continue;
           }
-          if (text[i + 1] === '{') {
+          if (text[i+1] === '{') {
             let j = i + 2;
             while (j < n && text[j] !== '}') j++;
-            html += span('h-var', text.slice(i, j + 1));
+            const raw = text.slice(i, j + 1);           // ${VAR_NAME}
+            const varName = text.slice(i + 2, j);
+            const cls = (!definedVars || definedVars.has(varName)) ? 'h-var' : 'h-var-undef';
+            html += span(cls, raw);
             i = j + 1;
             expectCmd = false;
             continue;
           }
           // $VAR
           let j = i + 1;
-          while (j < n && /[\w]/.test(text[j])) j++;
-          html += span('h-var', text.slice(i, j));
+          while (j < n && /\w/.test(text[j])) j++;
+          const raw = text.slice(i, j);
+          const varName = text.slice(i + 1, j);
+          const cls = (!definedVars || !varName || definedVars.has(varName)) ? 'h-var' : 'h-var-undef';
+          html += span(cls, raw);
           i = j;
           expectCmd = false;
           continue;
         }
 
-        // operators: | || & && ; ;; > >> < << ( ) { }
         if ('|&;<>(){}[]'.includes(ch)) {
           let op = ch;
-          if ((ch === '|' || ch === '&' || ch === '>' || ch === '<' || ch === ';') &&
-              text[i+1] === ch) {
+          if ((ch === '|' || ch === '&' || ch === '>' || ch === '<' || ch === ';') && text[i+1] === ch) {
             op = ch + ch; i++;
           } else if (ch === '>' && text[i+1] === '&') {
             op = '>&'; i++;
           } else if (ch === '<' && text[i+1] === '(') {
-            // process substitution <(...)
             let depth = 1, j = i + 2;
             while (j < n && depth > 0) {
               if (text[j] === '(') depth++;
               else if (text[j] === ')') depth--;
               j++;
             }
-            html += span('h-op','<(') + highlightBash(text.slice(i+2, j-1)) + span('h-op',')');
+            html += span('h-op','<(') + highlightBash(text.slice(i+2, j-1), definedVars) + span('h-op',')');
             i = j;
             expectCmd = true;
             continue;
@@ -426,7 +571,6 @@
           continue;
         }
 
-        // word token
         let j = i;
         while (j < n && !/[\s|&;<>(){}[\]`"'$#]/.test(text[j])) j++;
         if (j === i) { html += esc(ch); i++; continue; }
@@ -435,11 +579,9 @@
         i = j;
 
         if (word.startsWith('-')) {
-          // flag
           html += span('h-flag', word);
         } else if (KEYWORDS.has(word)) {
           html += span('h-key', word);
-          // after then/do/else/elif a command follows
           if (['then','do','else','elif'].includes(word)) expectCmd = true;
           else expectCmd = false;
         } else if (expectCmd) {
@@ -455,7 +597,19 @@
       return html;
     }
 
-    // ── DOM helpers ────────────────────────────────────────────────────────────
+    // ── Highlight refresh (without re-rendering DOM) ───────────────────────────
+
+    // Tracks { clip, textarea, highlight } for all clip boxes currently in DOM
+    let editorPairs = [];
+
+    function refreshHighlights() {
+      const vars = getDefinedVars();
+      editorPairs.forEach(({ textarea, highlight }) => {
+        highlight.innerHTML = highlightBash(textarea.value, vars) || '';
+      });
+    }
+
+    // ── DOM helpers ───────────────────────────────────────────────────────────
 
     function autoResize(textarea, highlight) {
       textarea.style.height = 'auto';
@@ -472,114 +626,214 @@
       toastTimer = setTimeout(() => t.classList.remove('show'), 1500);
     }
 
+    const SVG_COPY = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+    const SVG_DEL  = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+
+    function makeDeleteBtn(clip) {
+      const btn = document.createElement('div');
+      btn.className = 'clip-delete';
+      btn.title = 'Remove';
+      btn.innerHTML = SVG_DEL;
+      btn.addEventListener('click', () => {
+        clips = clips.filter(c => c.id !== clip.id);
+        if (clips.length === 0) clips = [{ id: uid(), type: 'clip', title: '', text: '' }];
+        save(clips);
+        render();
+      });
+      return btn;
+    }
+
+    // ── Render clip box ───────────────────────────────────────────────────────
+
+    function renderClipBox(clip, vars) {
+      const el = document.createElement('div');
+      el.className = 'clip';
+      el.dataset.id = clip.id;
+
+      // Copy button (left)
+      const copyBtn = document.createElement('div');
+      copyBtn.className = 'clip-copy';
+      copyBtn.title = 'Copy to clipboard';
+      copyBtn.innerHTML = SVG_COPY;
+      copyBtn.addEventListener('click', () => {
+        if (!clip.text) return;
+        const final = substituteVars(clip.text);
+        navigator.clipboard.writeText(final).then(() => {
+          copyBtn.classList.add('copied');
+          showToast(clip.title);
+          setTimeout(() => copyBtn.classList.remove('copied'), 1000);
+        });
+      });
+
+      // Left content
+      const left = document.createElement('div');
+      left.className = 'clip-left';
+
+      const title = document.createElement('input');
+      title.className = 'clip-title';
+      title.type = 'text';
+      title.placeholder = 'Title';
+      title.value = clip.title || '';
+      title.spellcheck = false;
+      title.autocomplete = 'off';
+      title.addEventListener('input', () => { clip.title = title.value; save(clips); });
+
+      const editorWrap = document.createElement('div');
+      editorWrap.className = 'clip-editor';
+
+      const highlight = document.createElement('div');
+      highlight.className = 'clip-highlight';
+      highlight.setAttribute('aria-hidden', 'true');
+
+      const textarea = document.createElement('textarea');
+      textarea.className = 'clip-text';
+      textarea.rows = 1;
+      textarea.placeholder = 'paste command…';
+      textarea.value = clip.text || '';
+      textarea.spellcheck = false;
+      textarea.autocomplete = 'off';
+      textarea.autocorrect = 'off';
+      textarea.autocapitalize = 'off';
+
+      function update() {
+        clip.text = textarea.value;
+        save(clips);
+        highlight.innerHTML = highlightBash(textarea.value, getDefinedVars()) || '';
+        autoResize(textarea, highlight);
+      }
+
+      textarea.addEventListener('input', update);
+      textarea.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          const s = textarea.selectionStart, e2 = textarea.selectionEnd;
+          textarea.value = textarea.value.slice(0, s) + '\t' + textarea.value.slice(e2);
+          textarea.selectionStart = textarea.selectionEnd = s + 1;
+          update();
+        }
+      });
+
+      editorWrap.appendChild(highlight);
+      editorWrap.appendChild(textarea);
+      left.appendChild(title);
+      left.appendChild(editorWrap);
+
+      el.appendChild(copyBtn);
+      el.appendChild(left);
+      el.appendChild(makeDeleteBtn(clip));
+
+      // Register for highlight refresh
+      editorPairs.push({ clip, textarea, highlight });
+
+      // Init
+      highlight.innerHTML = highlightBash(clip.text || '', vars) || '';
+      autoResize(textarea, highlight);
+
+      return el;
+    }
+
+    // ── Render env var box ────────────────────────────────────────────────────
+
+    function renderEnvBox(clip) {
+      const el = document.createElement('div');
+      el.className = 'clip env-clip';
+      el.dataset.id = clip.id;
+
+      const badge = document.createElement('div');
+      badge.className = 'env-badge';
+      badge.textContent = '${}';
+
+      const fields = document.createElement('div');
+      fields.className = 'env-fields';
+
+      const nameInput = document.createElement('input');
+      nameInput.className = 'env-name';
+      nameInput.type = 'text';
+      nameInput.placeholder = 'VAR_NAME';
+      nameInput.value = clip.name || '';
+      nameInput.spellcheck = false;
+      nameInput.autocomplete = 'off';
+      nameInput.addEventListener('input', () => {
+        // Only allow valid identifier chars
+        nameInput.value = nameInput.value.replace(/[^A-Za-z0-9_]/g, '').toUpperCase();
+        clip.name = nameInput.value;
+        save(clips);
+        refreshHighlights();
+      });
+
+      const eq = document.createElement('span');
+      eq.className = 'env-eq';
+      eq.textContent = '=';
+
+      const valueInput = document.createElement('input');
+      valueInput.className = 'env-value';
+      valueInput.type = 'text';
+      valueInput.placeholder = 'value';
+      valueInput.value = clip.value || '';
+      valueInput.spellcheck = false;
+      valueInput.autocomplete = 'off';
+      valueInput.addEventListener('input', () => {
+        clip.value = valueInput.value;
+        save(clips);
+        refreshHighlights();
+      });
+
+      fields.appendChild(nameInput);
+      fields.appendChild(eq);
+      fields.appendChild(valueInput);
+
+      el.appendChild(badge);
+      el.appendChild(fields);
+      el.appendChild(makeDeleteBtn(clip));
+
+      return el;
+    }
+
+    // ── Render all ────────────────────────────────────────────────────────────
+
     function render() {
+      editorPairs = [];
       const container = document.getElementById('clips');
       container.innerHTML = '';
-
-      clips.forEach((clip) => {
-        const el = document.createElement('div');
-        el.className = 'clip';
-        el.dataset.id = clip.id;
-
-        // Left column
-        const left = document.createElement('div');
-        left.className = 'clip-left';
-
-        // Title
-        const title = document.createElement('input');
-        title.className = 'clip-title';
-        title.type = 'text';
-        title.placeholder = 'Title';
-        title.value = clip.title;
-        title.spellcheck = false;
-        title.autocomplete = 'off';
-        title.addEventListener('input', () => { clip.title = title.value; save(clips); });
-
-        // Editor wrapper (highlight + textarea stacked)
-        const editorWrap = document.createElement('div');
-        editorWrap.className = 'clip-editor';
-
-        const highlight = document.createElement('div');
-        highlight.className = 'clip-highlight';
-        highlight.setAttribute('aria-hidden', 'true');
-
-        const textarea = document.createElement('textarea');
-        textarea.className = 'clip-text';
-        textarea.rows = 1;
-        textarea.placeholder = 'paste command…';
-        textarea.value = clip.text;
-        textarea.spellcheck = false;
-        textarea.autocomplete = 'off';
-        textarea.autocorrect = 'off';
-        textarea.autocapitalize = 'off';
-
-        function update() {
-          clip.text = textarea.value;
-          save(clips);
-          highlight.innerHTML = highlightBash(textarea.value) || '';
-          autoResize(textarea, highlight);
+      const vars = getDefinedVars();
+      clips.forEach(clip => {
+        if (clip.type === 'env') {
+          container.appendChild(renderEnvBox(clip));
+        } else {
+          container.appendChild(renderClipBox(clip, vars));
         }
-
-        textarea.addEventListener('input', update);
-        textarea.addEventListener('keydown', (e) => {
-          if (e.key === 'Tab') {
-            e.preventDefault();
-            const s = textarea.selectionStart;
-            const e2 = textarea.selectionEnd;
-            textarea.value = textarea.value.slice(0, s) + '\t' + textarea.value.slice(e2);
-            textarea.selectionStart = textarea.selectionEnd = s + 1;
-            update();
-          }
-        });
-
-        editorWrap.appendChild(highlight);
-        editorWrap.appendChild(textarea);
-
-        left.appendChild(title);
-        left.appendChild(editorWrap);
-
-        // Copy button
-        const copyBtn = document.createElement('div');
-        copyBtn.className = 'clip-copy';
-        copyBtn.title = 'Copy to clipboard';
-        copyBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
-        copyBtn.addEventListener('click', () => {
-          if (!clip.text) return;
-          navigator.clipboard.writeText(clip.text).then(() => {
-            copyBtn.classList.add('copied');
-            showToast(clip.title);
-            setTimeout(() => copyBtn.classList.remove('copied'), 1000);
-          });
-        });
-
-        // Delete button
-        const delBtn = document.createElement('div');
-        delBtn.className = 'clip-delete';
-        delBtn.title = 'Remove';
-        delBtn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
-        delBtn.addEventListener('click', () => {
-          clips = clips.filter(c => c.id !== clip.id);
-          if (clips.length === 0) clips = [{ id: uid(), title: '', text: '' }];
-          save(clips);
-          render();
-        });
-
-        el.appendChild(copyBtn);
-        el.appendChild(left);
-        el.appendChild(delBtn);
-        container.appendChild(el);
-
-        // Init highlight and size
-        highlight.innerHTML = highlightBash(clip.text) || '';
-        autoResize(textarea, highlight);
       });
     }
 
+    // ── Modal ─────────────────────────────────────────────────────────────────
+
+    const overlay = document.getElementById('modal-overlay');
+
+    function closeModal() { overlay.classList.remove('show'); }
+
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) closeModal(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
     document.getElementById('add-btn').addEventListener('click', () => {
-      clips.push({ id: uid(), title: '', text: '' });
+      overlay.classList.add('show');
+    });
+
+    document.getElementById('mc-clip').addEventListener('click', () => {
+      closeModal();
+      clips.push({ id: uid(), type: 'clip', title: '', text: '' });
       save(clips);
       render();
-      document.querySelectorAll('.clip-title')[clips.length - 1].focus();
+      document.querySelectorAll('.clip-title')[clips.filter(c => c.type === 'clip').length - 1 < 0 ? 0 : clips.length - 1]?.focus();
+    });
+
+    document.getElementById('mc-env').addEventListener('click', () => {
+      closeModal();
+      clips.push({ id: uid(), type: 'env', name: '', value: '' });
+      save(clips);
+      render();
+      // Focus the name input of the newly added env box
+      const envNames = document.querySelectorAll('.env-name');
+      envNames[envNames.length - 1]?.focus();
     });
 
     render();
