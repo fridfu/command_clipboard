@@ -254,7 +254,8 @@
     #add-btn:hover { border-color: #334155; color: #64748b; }
 
     /* ── Modal ────────────────────────────────────────────────── */
-    #modal-overlay {
+    #modal-overlay,
+    #file-modal-overlay {
       display: none;
       position: fixed;
       inset: 0;
@@ -263,7 +264,8 @@
       align-items: center;
       justify-content: center;
     }
-    #modal-overlay.show { display: flex; }
+    #modal-overlay.show,
+    #file-modal-overlay.show { display: flex; }
 
     #modal {
       background: #1a2030;
@@ -352,6 +354,24 @@
     </div>
   </div>
 
+  <div id="file-modal-overlay">
+    <div id="modal">
+      <h2 id="file-modal-title">File already has data…</h2>
+      <div class="modal-choices">
+        <button class="modal-choice" id="fmc-load">
+          <span class="mc-icon">📂</span>
+          <span class="mc-label">Load file</span>
+          <span class="mc-desc">replace current clips</span>
+        </button>
+        <button class="modal-choice" id="fmc-save">
+          <span class="mc-icon">💾</span>
+          <span class="mc-label">Overwrite file</span>
+          <span class="mc-desc">save current clips to file</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast">Copied</div>
 
   <script>
@@ -395,23 +415,49 @@
         });
         const file = await handle.getFile();
         const text = await file.text();
+        let fileClips = null;
         if (text.trim()) {
           try {
             const parsed = JSON.parse(text);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              clips = parsed.map(normalize);
-              save(clips);
-              render();
-            }
+            if (Array.isArray(parsed) && parsed.length > 0) fileClips = parsed;
           } catch { /* ignore invalid JSON */ }
         }
         fileHandle = handle;
         setLinked(handle.name);
-        writeToFile(clips);
+        if (fileClips) {
+          showFileModal(fileClips);
+        } else {
+          writeToFile(clips);
+        }
       } catch (e) {
         if (e.name !== 'AbortError') console.warn('File picker error:', e);
       }
     });
+
+    // ── File-link modal ───────────────────────────────────────────────────────
+
+    const fileOverlay = document.getElementById('file-modal-overlay');
+
+    function showFileModal(fileClips) {
+      fileOverlay.classList.add('show');
+
+      function cleanup() { fileOverlay.classList.remove('show'); }
+
+      document.getElementById('fmc-load').onclick = () => {
+        cleanup();
+        clips = fileClips.map(normalize);
+        save(clips);
+        render();
+      };
+
+      document.getElementById('fmc-save').onclick = () => {
+        cleanup();
+        writeToFile(clips);
+      };
+    }
+
+    fileOverlay.addEventListener('click', (e) => { if (e.target === fileOverlay) fileOverlay.classList.remove('show'); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fileOverlay.classList.remove('show'); });
 
     // ── Data ──────────────────────────────────────────────────────────────────
 
